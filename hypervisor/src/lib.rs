@@ -4,6 +4,4 @@ extern crate alloc;
 
 pub mod amd;
 mod intel;
-
-
-
+mod arch;
