@@ -1,24 +1,18 @@
-use alloc::vec::Vec;
 use bit_field::BitField;
 use core::arch::{asm};
-use core::mem::zeroed;
 use core::ptr::addr_of;
 use core::sync::atomic::{AtomicU8, Ordering};
-use x86::bits64::paging::BASE_PAGE_SHIFT;
 use x86::controlregs::{cr0, cr3, cr3_write, cr4};
 use x86::cpuid::cpuid;
 use x86::current::rflags::RFlags;
 use x86::dtables::{DescriptorTablePointer};
 use x86::msr::{rdmsr, wrmsr};
-use x86::segmentation;
 use x86::segmentation::{cs, ds, es, ss};
 
-use crate::amd::guest::{apic_id, paging, NestedPageTables};
-use crate::amd::{guest, InstructionInfo, VmExitReason};
-use kernelutils::{physical_address, PhysicalAllocator, Registers};
+use crate::amd::guest::apic_id;
+use crate::amd::{InstructionInfo, VmExitReason};
+use kernelutils::Registers;
 use kernelutils::nt::platform_ops;
-use crate::amd::guest::gdt_tss::GdtTss;
-use crate::amd::guest::interrupt_handlers::InterruptDescriptorTable;
 
 use crate::amd::guest::shared_data::{SHARED_GUEST_DATA, SHARED_HOST_DATA};
 use crate::amd::guest::support::{get_segment_access_right, get_segment_limit, run_svm_guest, sgdt, sidt, vmsave, GuestActivityState, TlbControl};
