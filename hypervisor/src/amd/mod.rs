@@ -4,23 +4,21 @@ pub mod vmexit;
 use alloc::boxed::Box;
 use core::arch::asm;
 pub use guest::Vmx;
-pub use vmexit::VmExitReason;
 pub use vmexit::InstructionInfo;
+pub use vmexit::VmExitReason;
 
-use kernelutils::nt::{platform_ops, switch_stack};
-use kernelutils::Registers;
 use crate::amd::guest::apic_id;
 use crate::amd::vmexit::handle_cpuid;
 use crate::arch::Architecture;
+use kernelutils::nt::{platform_ops, switch_stack};
+use kernelutils::Registers;
 
 pub(crate) fn main(registers: &Registers) -> ! {
     unsafe { x86::irq::disable() };
 
-
     let id = apic_id::processor_id_from(apic_id::get()).unwrap();
     Architecture::enable();
-    let mut guest = Vmx::new(id, registers);
-
+    let mut guest = Vmx::new(id);
 
     guest.activate();
 
@@ -30,12 +28,9 @@ pub(crate) fn main(registers: &Registers) -> ! {
     loop {
         let reason = guest.run();
 
-        match reason {
-            VmExitReason::Cpuid(info) => handle_cpuid(&mut guest, &info),
 
-            _ => {
-                unsafe { asm!("int 3") }
-            }
+        if let VmExitReason::Cpuid(info) = reason {
+            handle_cpuid(&mut guest, &info);
         }
     }
 }
@@ -47,9 +42,7 @@ pub fn virtualize_system() {
     platform_ops::get().run_on_all_processors(|| {
         let registers = Registers::capture_current();
 
-
         log::info!("Virtualizing the current processor");
-
 
         unsafe { asm!("int 3") }
         switch_stack::jump_with_new_stack(main, &registers);

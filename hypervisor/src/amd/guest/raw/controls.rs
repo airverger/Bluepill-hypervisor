@@ -18,12 +18,12 @@ pub struct ControlArea {
     msrpm_base_pa: u64,                  // +0x048
     tsc_offset: u64,                     // +0x050
     pub(crate) guest_asid: u32,          // +0x058
-    pub(crate) tlb_control: u32,                    // +0x05c
+    pub(crate) tlb_control: u32,         // +0x05c
     vintr: u64,                          // +0x060
     interrupt_shadow: u64,               // +0x068
-    pub(crate) exit_code: u64,                      // +0x070
-    exit_info1: u64,                     // +0x078
-    pub(crate) exit_info2: u64,                     // +0x080
+    pub(crate) exit_code: u64,           // +0x070
+    pub(crate) exit_info1: u64,          // +0x078
+    pub(crate) exit_info2: u64,          // +0x080
     exit_int_info: u64,                  // +0x088
     pub(crate) np_enable: u64,           // +0x090
     avic_apic_bar: u64,                  // +0x098
@@ -31,11 +31,11 @@ pub struct ControlArea {
     event_inj: u64,                      // +0x0a8
     pub(crate) ncr3: u64,                // +0x0b0
     lbr_virtualization_enable: u64,      // +0x0b8
-    pub(crate) vmcb_clean: u32,                     // +0x0c0
+    pub(crate) vmcb_clean: u32,          // +0x0c0
     _reserved: u32,                      // +0x0c4
-    pub(crate) nrip: u64,                           // +0x0c8
-    pub(crate) num_of_bytes_fetched: u8,            // +0x0d0
-    pub(crate) guest_instruction_bytes: [u8; 15],   // +0x0d1
+    pub(crate) nrip: u64,                // +0x0c8
+    pub(crate) num_of_bytes_fetched: u8, // +0x0d0
+    pub(crate) guest_instruction_bytes: [u8; 15], // +0x0d1
     avic_apic_backing_page_pointer: u64, // +0x0e0
     #[derivative(Debug = "ignore")]
     _padding2: u64, // +0x0e8

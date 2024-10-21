@@ -2,8 +2,8 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 
 use alloc::collections::BTreeMap;
 use spin::RwLock;
+use kernelutils::nt::platform_ops;
 
-// use crate::hypervisor::platform_ops;
 
 type ApicId = u8;
 type ProcessorId = usize;
@@ -19,16 +19,12 @@ pub(crate) fn get() -> ApicId {
 
 pub(crate) fn init() {
     assert!(PROCESSOR_COUNT.load(Ordering::Relaxed) == 0);
-    // platform_ops::get().run_on_all_processors(|| {
-    //     let mut map = APIC_ID_MAP.write();
-    //     assert!(map
-    //         .insert(get(), PROCESSOR_COUNT.fetch_add(1, Ordering::Relaxed))
-    //         .is_none());
-    // });
-    let mut map = APIC_ID_MAP.write();
-    assert!(map
-        .insert(get(), PROCESSOR_COUNT.fetch_add(1, Ordering::Relaxed))
-        .is_none());
+    platform_ops::get().run_on_all_processors(|| {
+        let mut map = APIC_ID_MAP.write();
+        assert!(map
+            .insert(get(), PROCESSOR_COUNT.fetch_add(1, Ordering::Relaxed))
+            .is_none());
+    });
 }
 
 pub(crate) fn processor_id_from(apic_id: ApicId) -> Option<ProcessorId> {
