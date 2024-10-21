@@ -1,15 +1,14 @@
 mod guest;
-pub mod vmexit;
 pub use guest::VCpu;
 
 use alloc::boxed::Box;
 use core::arch::asm;
 
-pub use vmexit::InstructionInfo;
-pub use vmexit::VmExitReason;
+pub use guest::vmexit::InstructionInfo;
+pub use guest::vmexit::VmExitReason;
 
 
-use crate::amd::vmexit::handle_cpuid;
+use guest::vmexit::handle_cpuid;
 use crate::arch::Architecture;
 use kernelutils::nt::{platform_ops, switch_stack};
 use kernelutils::Registers;
