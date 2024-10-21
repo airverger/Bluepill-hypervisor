@@ -10,6 +10,7 @@ mod kernel_alloc;
 pub mod nt;
 mod misc;
 mod hard;
+mod spoof;
 
 pub use kernel_alloc::PhysicalAllocator;
 pub use kernel_alloc::KernelAlloc;
@@ -25,7 +26,9 @@ pub use hard::capture_registers;
 
 pub use nt::PhysicalAddress;
 pub use nt::physical_address;
-pub use nt::jump_with_new_stack;
+
+pub use spoof::spoof_test;
+
 
 // get_segment_limit
 // get_segment_descriptor_value
