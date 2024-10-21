@@ -1,0 +1,1 @@
+d在amd上实现 bluepillhypervisor
