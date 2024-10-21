@@ -9,9 +9,8 @@ extern crate alloc;
 #[cfg(not(test))]
 extern crate wdk_panic;
 #[cfg(not(test))]
-
 use wdk_alloc::WDKAllocator;
-use kernelutils::spoof_test;
+// use kernelutils::spoof_test;
 
 #[cfg(not(test))]
 #[global_allocator]
@@ -23,9 +22,6 @@ pub unsafe extern "system" fn driver_entry(
     driver: &mut DRIVER_OBJECT,
     _registry_path: PUNICODE_STRING,
 ) -> NTSTATUS {
-
-
-
     driver.DriverUnload = Some(driver_unload);
     KernelLogger::init(LevelFilter::Trace).expect("Failed to initialize logger");
 
@@ -36,8 +32,6 @@ pub unsafe extern "system" fn driver_entry(
     hypervisor::amd::virtualize_system();
     0 as NTSTATUS
 }
-
-
 
 pub extern "C" fn driver_unload(_driver: *mut DRIVER_OBJECT) {
     log::trace!("Driver unloaded successfully!");

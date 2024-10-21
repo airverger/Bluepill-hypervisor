@@ -5,13 +5,12 @@ pub mod switch_stack;
 
 
 
-use core::alloc::Layout;
-use core::arch::global_asm;
 pub use addresses::PhysicalAddress;
 pub use addresses::physical_address;
-use wdk_sys::ntddk::{KeGetProcessorNumberFromIndex, KeLowerIrql, KeQueryActiveProcessorCountEx, KeRevertToUserGroupAffinityThread, KeSetSystemGroupAffinityThread, KeStackAttachProcess, KeUnstackDetachProcess, MmGetPhysicalAddress, MmGetSystemRoutineAddress};
-use wdk_sys::{ALL_PROCESSOR_GROUPS, GROUP_AFFINITY, KIRQL, NT_SUCCESS, PAGED_CODE, PEPROCESS, PRKPROCESS, PROCESSOR_NUMBER, PVOID, _KAPC_STATE};
-use x86::bits64::paging::BASE_PAGE_SIZE;
+use wdk_sys::ntddk::{ KeLowerIrql, KeStackAttachProcess,
+                      KeUnstackDetachProcess, MmGetSystemRoutineAddress};
+use wdk_sys::{ KIRQL, PEPROCESS, PRKPROCESS, PVOID, _KAPC_STATE};
+
 use crate::{misc, HypervisorError, Registers};
 
 /// Gets a pointer to a function from ntoskrnl.exe exports.
@@ -96,6 +95,7 @@ extern "system" {
 }
 extern "C" {
     /// Jumps to the landing code with the new stack pointer.
+    #[allow(dead_code)]
     fn switch_stack(registers: &Registers, destination: usize, stack_base: u64) -> !;
 }
 

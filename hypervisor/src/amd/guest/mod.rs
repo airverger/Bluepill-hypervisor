@@ -13,6 +13,7 @@ mod vmm;
 
 pub(crate) mod vmx;
 pub mod interrupt_handlers;
+pub mod shared_data;
 
 pub use paging::NestedPageTables;
 pub use vmx::Vmx;

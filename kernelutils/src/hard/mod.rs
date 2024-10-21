@@ -14,7 +14,7 @@ pub fn get_cpu_version() -> CPUVersion {
 
 }
 use core::arch::global_asm;
-use x86::bits64::paging::BASE_PAGE_SHIFT;
+
 
 #[derive(Clone, Copy, Debug, Default)]
 #[repr(C)]

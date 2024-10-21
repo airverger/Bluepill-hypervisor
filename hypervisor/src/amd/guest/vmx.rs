@@ -1,16 +1,14 @@
-use alloc::boxed::Box;
 use alloc::vec::Vec;
 use bit_field::BitField;
-use core::arch::{asm, global_asm};
+use core::arch::{asm};
 use core::mem::zeroed;
 use core::ptr::addr_of;
 use core::sync::atomic::{AtomicU8, Ordering};
-use spin::{Lazy, Once, RwLock};
 use x86::bits64::paging::BASE_PAGE_SHIFT;
 use x86::controlregs::{cr0, cr3, cr3_write, cr4};
 use x86::cpuid::cpuid;
 use x86::current::rflags::RFlags;
-use x86::dtables::{ DescriptorTablePointer};
+use x86::dtables::{DescriptorTablePointer};
 use x86::msr::{rdmsr, wrmsr};
 use x86::segmentation;
 use x86::segmentation::{cs, ds, es, ss};
@@ -22,6 +20,7 @@ use kernelutils::nt::platform_ops;
 use crate::amd::guest::gdt_tss::GdtTss;
 use crate::amd::guest::interrupt_handlers::InterruptDescriptorTable;
 use crate::amd::guest::paging::PagingStructures;
+use crate::amd::guest::shared_data::{SHARED_GUEST_DATA, SHARED_HOST_DATA};
 use crate::amd::guest::support::{get_segment_access_right, get_segment_limit, run_svm_guest, sgdt, sidt, vmsave, GuestActivityState, TlbControl};
 use crate::amd::guest::vmm::{HostStateArea, Vmcb};
 
@@ -40,44 +39,8 @@ pub struct Vmx {
     registers: Registers,
     activity_state: &'static AtomicU8,
 }
-struct SharedGuestData {
-    npt: RwLock<NestedPageTables>,
-    activity_states: [AtomicU8; 0xff],
-}
 
-impl SharedGuestData {
-    fn new() -> Self {
-        let mut npt = NestedPageTables::new();
-        npt.build_identity();
-        npt.split_apic_page();
 
-        Self {
-            npt: RwLock::new(npt),
-            activity_states: core::array::from_fn(|_| {
-                AtomicU8::new(GuestActivityState::Active as u8)
-            }),
-        }
-    }
-}
-static SHARED_GUEST_DATA: Lazy<SharedGuestData> = Lazy::new(SharedGuestData::new);
-
-/// A collection of data that the host depends on for its entire lifespan.
-#[derive(Debug, Default)]
-pub struct SharedHostData {
-    /// The paging structures for the host. If `None`, the current paging
-    /// structure is used for both the host and the guest.
-    pub pt: Option<PagingStructures>,
-
-    /// The IDT for the host. If `None`, the current IDT is used for both the
-    /// host and the guest.
-    pub idt: Option<InterruptDescriptorTable>,
-
-    /// The GDT and TSS for the host for each logical processor. If `None`,
-    /// the current GDTs and TSSes are used for both the host and the guest.
-    pub gdts: Option<Vec<GdtTss>>,
-}
-
-static SHARED_HOST_DATA: Once<SharedHostData> = Once::new();
 pub(crate) fn lidt(idtr: &DescriptorTablePointer<u64>) {
     unsafe { x86::dtables::lidt(idtr) };
 }
@@ -544,7 +507,7 @@ impl Vmx {
         }
     }
 
-pub    fn regs(&mut self) -> &mut Registers {
+    pub fn regs(&mut self) -> &mut Registers {
         &mut self.registers
     }
 }

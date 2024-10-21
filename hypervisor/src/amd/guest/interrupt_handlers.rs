@@ -14,6 +14,7 @@ pub struct InterruptDescriptorTable {
 }
 
 impl InterruptDescriptorTable {
+   #[allow(dead_code)]
     pub fn new(cs: SegmentSelector) -> Self {
         // Build the IDT. Each interrupt handler (ie. asm_interrupt_handlerN) is
         // 16 byte long and can be located from asm_interrupt_handler0.
