@@ -19,7 +19,7 @@ use kernelutils::{physical_address, PhysicalAllocator, Registers};
 use kernelutils::nt::platform_ops;
 use crate::amd::guest::gdt_tss::GdtTss;
 use crate::amd::guest::interrupt_handlers::InterruptDescriptorTable;
-use crate::amd::guest::paging::PagingStructures;
+
 use crate::amd::guest::shared_data::{SHARED_GUEST_DATA, SHARED_HOST_DATA};
 use crate::amd::guest::support::{get_segment_access_right, get_segment_limit, run_svm_guest, sgdt, sidt, vmsave, GuestActivityState, TlbControl};
 use crate::amd::guest::vmm::{HostStateArea, Vmcb};
@@ -395,7 +395,7 @@ impl Vmx {
         }
 
         if let Some(host_idt) = &shared_host.idt {
-            unsafe { lidt(&host_idt.idtr()); }
+            lidt(&host_idt.idtr());
         }
 
         // Save some of the current register values as host state. They are
@@ -420,9 +420,9 @@ impl Vmx {
 
         vm.guest_vmcb_pa = platform_ops::get().pa(addr_of!(*vm.guest_vmcb.as_ref()) as _);
         vm.host_vmcb_pa = platform_ops::get().pa(addr_of!(*vm.host_vmcb.as_ref()) as _);
-        if cfg!(feature = "uefi") && vm.id == 0 {
-            vm.intercept_apic_write(true);
-        }
+        // if cfg!(feature = "uefi") && vm.id == 0 {
+        //     vm.intercept_apic_write(true);
+        // }
         vm
     }
     pub(crate) fn activate(&mut self) {

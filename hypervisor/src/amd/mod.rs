@@ -46,7 +46,7 @@ pub fn virtualize_system() {
 
         unsafe { asm!("int 3") }
         switch_stack::jump_with_new_stack(main, &registers);
-
+        #[allow(unreachable_code)]
         log::info!("Virtualized the current processor");
     });
 }

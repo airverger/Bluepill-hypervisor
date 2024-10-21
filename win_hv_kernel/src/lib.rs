@@ -1,6 +1,5 @@
 #![no_std]
 
-use core::arch::asm;
 use kernel_log::KernelLogger;
 use log::LevelFilter;
 use wdk_sys::{DRIVER_OBJECT, NTSTATUS, PUNICODE_STRING};

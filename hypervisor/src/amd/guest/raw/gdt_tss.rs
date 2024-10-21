@@ -20,6 +20,7 @@ pub struct GdtTss {
 }
 
 impl GdtTss {
+    #[allow(dead_code)]
     pub fn new_from_current() -> Self {
         Self {
             ptr: Box::new(GdtTssRaw::new_from_current()),
@@ -30,6 +31,7 @@ impl GdtTss {
 #[derive(Clone, Debug)]
 pub struct GdtTssRaw {
     pub gdt: Vec<u64>,
+    #[allow(dead_code)]
     pub cs: SegmentSelector,
     pub tss: Option<TaskStateSegment>,
     pub tr: Option<SegmentSelector>,
@@ -42,6 +44,7 @@ pub enum GdtTssError {
 }
 
 impl GdtTssRaw {
+    #[allow(dead_code)]
     pub fn new_from_current() -> Self {
         let gdtr = Self::sgdt();
 
@@ -64,6 +67,7 @@ impl GdtTssRaw {
         Self { gdt, cs, tss, tr }
     }
 
+    #[allow(dead_code)]
     pub fn append_tss(&mut self, tss: TaskStateSegment) -> &Self {
         if self.tss.is_some() || self.tr.is_some() {
             return self;
@@ -80,6 +84,7 @@ impl GdtTssRaw {
         self
     }
 
+    #[allow(dead_code)]
     pub fn apply(&self) -> Result<(), GdtTssError> {
         if unsafe { tr() }.bits() != 0 {
             return Err(GdtTssError::TssAlreadyInUse);
