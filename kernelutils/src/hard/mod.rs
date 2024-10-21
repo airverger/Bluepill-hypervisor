@@ -14,35 +14,35 @@ pub fn get_cpu_version() -> CPUVersion {
 
 }
 use core::arch::global_asm;
-use x86::bits64::paging::BASE_PAGE_SHIFT;
+
 
 #[derive(Clone, Copy, Debug, Default)]
 #[repr(C)]
 pub struct Registers {
     pub rax: u64,
-    pub(crate) rbx: u64,
-    pub(crate) rcx: u64,
-    pub(crate) rdx: u64,
-    pub(crate) rdi: u64,
-    pub(crate) rsi: u64,
-    pub(crate) rbp: u64,
-    pub(crate) r8: u64,
-    pub(crate) r9: u64,
-    pub(crate) r10: u64,
-    pub(crate) r11: u64,
-    pub(crate) r12: u64,
-    pub(crate) r13: u64,
-    pub(crate) r14: u64,
-    pub(crate) r15: u64,
+    pub rbx: u64,
+    pub rcx: u64,
+    pub rdx: u64,
+    pub rdi: u64,
+    pub rsi: u64,
+    pub rbp: u64,
+    pub r8: u64,
+    pub r9: u64,
+    pub r10: u64,
+    pub r11: u64,
+    pub r12: u64,
+    pub r13: u64,
+    pub r14: u64,
+    pub r15: u64,
     pub rflags: u64,
     pub rsp: u64,
     pub rip: u64,
-    pub(crate) xmm0: Xmm,
-    pub(crate) xmm1: Xmm,
-    pub(crate) xmm2: Xmm,
-    pub(crate) xmm3: Xmm,
-    pub(crate) xmm4: Xmm,
-    pub(crate) xmm5: Xmm,
+    pub xmm0: Xmm,
+    pub xmm1: Xmm,
+    pub xmm2: Xmm,
+    pub xmm3: Xmm,
+    pub xmm4: Xmm,
+    pub xmm5: Xmm,
 }
 const _: () = assert!(core::mem::size_of::<Registers>() == 0xf0);
 

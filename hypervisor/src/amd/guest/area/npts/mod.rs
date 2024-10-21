@@ -1,45 +1,28 @@
 use alloc::boxed::Box;
 use core::ptr::addr_of;
 use bit_field::BitField;
-use x86::current::paging::{BASE_PAGE_SHIFT, BASE_PAGE_SIZE, LARGE_PAGE_SIZE};
+use x86::bits64::paging::{BASE_PAGE_SHIFT, BASE_PAGE_SIZE, LARGE_PAGE_SIZE};
 use x86::msr::rdmsr;
 use kernelutils::{physical_address, PhysicalAllocator};
-use crate::amd::guest::paging;
+use crate::amd::guest::{Entry, PagingStructuresRaw, Pt};
 
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Pml4(pub(crate) Table);
-
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Pdpt(pub(crate) Table);
-
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Pd(pub(crate) Table);
-
-#[derive(Debug, Clone, Copy)]
-pub struct Pt(#[allow(dead_code)] pub(crate) Table);
-
-#[derive(Debug, Clone, Copy)]
-#[repr(C, align(4096))]
-pub(crate) struct Table {
-    pub(crate) entries: [Entry; 512],
+#[derive(Debug, derive_deref::Deref, derive_deref::DerefMut)]
+pub struct PagingStructures {
+    data: Box<PagingStructuresRaw, PhysicalAllocator>,
 }
 
-bitfield::bitfield! {
-    #[derive(Clone, Copy)]
-    pub struct Entry(u64);
-    impl Debug;
-    pub present, set_present: 0;
-    pub writable, set_writable: 1;
-    pub user, set_user: 2;
-    pub large, set_large: 7;
-    pub pfn, set_pfn: 51, 12;
+impl Default for PagingStructures {
+    fn default() -> Self {
+        Self::new()
+    }
 }
-pub struct PagingStructuresRaw {
-    pub(crate) pml4: Pml4,
-    pub(crate) pdpt: Pdpt,
-    pub(crate) pd: [Pd; 512],
-    pub(crate) pt: Pt,
-    pub(crate) pt_apic: Pt,
+
+impl PagingStructures {
+    pub fn new() -> Self {
+        Self {
+            data: unsafe { Box::new_zeroed_in(PhysicalAllocator).assume_init() },
+        }
+    }
 }
 
 
@@ -51,7 +34,6 @@ impl NestedPageTables {
     pub fn apic_pt(&mut self) -> &mut Pt {
         &mut self.pt_apic
     }
-
 }
 impl NestedPageTables {
     pub fn new() -> Self {
@@ -59,15 +41,18 @@ impl NestedPageTables {
         Self { data: dada }
     }
 
-    pub(crate) fn build_identity_internal(ps: &mut Box<PagingStructuresRaw, PhysicalAllocator>, npt: bool) {
-
+    pub(crate) fn build_identity_internal(
+        ps: &mut Box<PagingStructuresRaw, PhysicalAllocator>,
+        npt: bool,
+    ) {
         let user = npt;
 
         let pml4 = &mut ps.pml4;
         pml4.0.entries[0].set_present(true);
         pml4.0.entries[0].set_writable(true);
         pml4.0.entries[0].set_user(user);
-        pml4.0.entries[0].set_pfn(physical_address(addr_of!(ps.pdpt) as _).as_u64() >> BASE_PAGE_SHIFT);
+        pml4.0.entries[0]
+            .set_pfn(physical_address(addr_of!(ps.pdpt) as _).as_u64() >> BASE_PAGE_SHIFT);
 
         let mut pa = 0;
         for (i, pdpte) in ps.pdpt.0.entries.iter_mut().enumerate() {
@@ -113,11 +98,13 @@ impl NestedPageTables {
         let pde = &mut self.data.pd[pdpt_index].0.entries[pd_index];
         Self::split_2mb(pde, &mut self.data.pt_apic);
     }
+
+    #[allow(dead_code)]
     pub fn pa(&self) -> u64 {
-        physical_address(addr_of!(*self.data.as_ref()) as _).as_u64()
+        physical_address(addr_of!(self.data) as _).as_u64()
     }
-    pub(crate) fn build_identity(&mut self){
-      Self:: build_identity_internal(&mut self.data,true);
+    pub fn build_identity(&mut self) {
+        Self::build_identity_internal(&mut self.data, true);
     }
 
     fn split_2mb(pde: &mut Entry, pt: &mut Pt) {

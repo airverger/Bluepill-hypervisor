@@ -1,6 +1,7 @@
+
 use core::arch::asm;
 use x86::cpuid::cpuid;
-use crate::amd::Vmx;
+use crate::amd::VCpu;
 
 pub enum VmExitReason {
     Cpuid(InstructionInfo),
@@ -18,14 +19,12 @@ pub struct InstructionInfo {
     pub(crate) next_rip: u64,
 }
 
-
-pub fn handle_cpuid(guest: &mut Vmx, info: &InstructionInfo) {
+pub fn handle_cpuid(guest: &mut VCpu, info: &InstructionInfo) {
     let leaf = guest.regs().rax as u32;
     let sub_leaf = guest.regs().rcx as u32;
     log::trace!("CPUID {leaf:#x?} {sub_leaf:#x?}");
     let mut cpuid_result = cpuid!(leaf, sub_leaf);
     if leaf == 1 {
-
         cpuid_result.ecx &= !(1 << 5);
     }
     guest.regs().rax = u64::from(cpuid_result.eax);
@@ -35,5 +34,4 @@ pub fn handle_cpuid(guest: &mut Vmx, info: &InstructionInfo) {
     guest.regs().rip = info.next_rip;
 
     unsafe { asm!("int 3") }
-
 }
