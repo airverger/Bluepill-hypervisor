@@ -1,19 +1,10 @@
-pub use raw::controls::ControlArea;
-pub mod apic_id;
-pub use raw::statesaves::StateSaveArea;
-pub mod raw;
-pub use raw::*;
-mod paging;
-
-mod support;
+mod area;
+mod raw;
 mod vcpu;
 
 
-mod vmm;
+pub use raw::*;
+pub mod support;
 
-pub(crate) mod vmx;
-pub mod interrupt_handlers;
-pub mod shared_data;
 
-pub use paging::NestedPageTables;
-pub use vmx::Vmx;
+pub use vcpu::VCpu;

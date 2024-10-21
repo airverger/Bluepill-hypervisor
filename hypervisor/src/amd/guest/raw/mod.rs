@@ -1,16 +1,30 @@
-use crate::amd::guest::{ControlArea, StateSaveArea};
+mod vmcb_wrapper;
+mod page_wrapper;
+mod exception_wrapper;
 
-pub mod controls;
-pub mod statesaves;
-pub mod gdt_tss;
-pub mod segment;
+pub use vmcb_wrapper::VmcbRaw;
+pub use vmcb_wrapper::ControlArea;
+pub use vmcb_wrapper::StateSaveArea;
+pub use vmcb_wrapper::HostStateAreaRaw;
+pub use vmcb_wrapper::SegmentDescriptorRaw;
+pub use vmcb_wrapper::GdtTssRaw;
+pub use vmcb_wrapper::Gdtr;
 
-#[derive(Debug, Default)]
-#[repr(C, align(4096))]
+pub use page_wrapper::Pml4;
+pub use page_wrapper::Pdpt;
+pub use page_wrapper::Pd;
+pub use page_wrapper::Pt;
+pub use page_wrapper::Table;
+pub use page_wrapper::Entry;
+pub use page_wrapper::PagingStructuresRaw;
 
-pub struct VmcbRaw {
-    pub(crate) control_area: ControlArea,
-    pub(crate) state_save_area: StateSaveArea,
-}
-#[repr(C, align(4096))]
-pub struct HostStateAreaRaw([u8; 0x1000]);
+
+pub use exception_wrapper::HostExceptionStack;
+pub use exception_wrapper::handle_host_exception;
+pub use exception_wrapper::asm_interrupt_handler0;
+pub use exception_wrapper::InterruptDescriptorTableRaw;
+pub use exception_wrapper::InterruptDescriptorTableEntry;
+
+
+
+

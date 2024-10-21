@@ -1,11 +1,10 @@
 use alloc::vec::Vec;
 use core::sync::atomic::AtomicU8;
 use spin::{Lazy, Once, RwLock};
-use crate::amd::guest::gdt_tss::GdtTss;
-use crate::amd::guest::interrupt_handlers::InterruptDescriptorTable;
-use crate::amd::guest::NestedPageTables;
-use crate::amd::guest::paging::PagingStructures;
-use crate::amd::guest::support::GuestActivityState;
+
+use crate::amd::guest::area::{GdtTss, NestedPageTables, PagingStructures};
+use crate::amd::guest::area::interrupt_handlers::InterruptDescriptorTable;
+use crate::amd::guest::support;
 
 pub struct SharedGuestData {
     pub npt: RwLock<NestedPageTables>,
@@ -21,7 +20,7 @@ impl SharedGuestData {
         Self {
             npt: RwLock::new(npt),
             activity_states: core::array::from_fn(|_| {
-                AtomicU8::new(GuestActivityState::Active as u8)
+                AtomicU8::new(support::GuestActivityState::Active as u8)
             }),
         }
     }

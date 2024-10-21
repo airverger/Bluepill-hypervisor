@@ -1,54 +1,14 @@
-
 use alloc::boxed::Box;
-use bit_field::BitField;
 use core::ptr::addr_of;
-use kernelutils::{physical_address, PhysicalAllocator};
-use x86::current::paging::{BASE_PAGE_SHIFT, BASE_PAGE_SIZE, LARGE_PAGE_SIZE};
+use bit_field::BitField;
+use x86::bits64::paging::{BASE_PAGE_SHIFT, BASE_PAGE_SIZE, LARGE_PAGE_SIZE};
 use x86::msr::rdmsr;
-use crate::amd::guest::support::zeroed_box;
-
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Pml4(pub(crate) Table);
-
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Pdpt(pub(crate) Table);
-
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Pd(pub(crate) Table);
-
-#[derive(Debug, Clone, Copy)]
-pub struct Pt(#[allow(dead_code)] pub(crate) Table);
-
-#[derive(Debug, Clone, Copy)]
-#[repr(C, align(4096))]
-pub(crate) struct Table {
-    pub(crate) entries: [Entry; 512],
-}
-
-bitfield::bitfield! {
-    #[derive(Clone, Copy)]
-    pub struct Entry(u64);
-    impl Debug;
-    pub present, set_present: 0;
-    pub writable, set_writable: 1;
-    pub user, set_user: 2;
-    pub large, set_large: 7;
-    pub pfn, set_pfn: 51, 12;
-}
-#[derive(Debug)]
-pub struct PagingStructuresRaw {
-    pub(crate) pml4: Pml4,
-    pub(crate) pdpt: Pdpt,
-    pub(crate) pd: [Pd; 512],
-    pub(crate) pt: Pt,
-    pub(crate) pt_apic: Pt,
-}
-
+use kernelutils::{physical_address, PhysicalAllocator};
+use crate::amd::guest::{Entry, PagingStructuresRaw, Pt};
 
 #[derive(Debug, derive_deref::Deref, derive_deref::DerefMut)]
-
 pub struct PagingStructures {
-    ptr: Box<PagingStructuresRaw>,
+    data: Box<PagingStructuresRaw, PhysicalAllocator>,
 }
 
 impl Default for PagingStructures {
@@ -60,7 +20,7 @@ impl Default for PagingStructures {
 impl PagingStructures {
     pub fn new() -> Self {
         Self {
-            ptr: zeroed_box::<PagingStructuresRaw>(),
+            data: unsafe { Box::new_zeroed_in(PhysicalAllocator).assume_init() },
         }
     }
 }
@@ -139,11 +99,11 @@ impl NestedPageTables {
         Self::split_2mb(pde, &mut self.data.pt_apic);
     }
 
-   #[allow(dead_code)]
+    #[allow(dead_code)]
     pub fn pa(&self) -> u64 {
         physical_address(addr_of!(self.data) as _).as_u64()
     }
-    pub(crate) fn build_identity(&mut self) {
+    pub fn build_identity(&mut self) {
         Self::build_identity_internal(&mut self.data, true);
     }
 

@@ -1,3 +1,6 @@
+pub mod apic_id;
+pub mod error;
+
 use alloc::alloc::handle_alloc_error;
 use alloc::boxed::Box;
 use core::alloc::Layout;
@@ -51,6 +54,13 @@ const SVM_DEBUG_CONTROL_6: u16 = 1 << 6;
 #[allow(dead_code)]
 
 const SVM_DEBUG_CONTROL_7: u16 = 1 << 7;
+
+#[allow(dead_code)]
+pub const SVM_NP_ENABLE_NP_ENABLE: u64 = 1 << 0;
+#[allow(dead_code)]
+pub const SECURITY_EXCEPTION: u32 = 1 << 30;
+
+
 #[allow(dead_code)]
 #[repr(u32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -76,6 +86,10 @@ extern "C" {
 }
 
 global_asm!(include_str!("run_guest.s"));
+
+pub fn lidt(idtr: &DescriptorTablePointer<u64>) {
+    unsafe { x86::dtables::lidt(idtr) };
+}
 pub fn vmsave(vmcb_pa: u64) {
     unsafe {
         asm!(
@@ -96,27 +110,12 @@ pub(crate) fn sgdt() -> DescriptorTablePointer<u64> {
     unsafe { x86::dtables::sgdt(&mut gdtr) };
     gdtr
 }
-#[allow(dead_code)]
-pub const SVM_NP_ENABLE_NP_ENABLE: u64 = 1 << 0;
-#[allow(dead_code)]
-pub const SECURITY_EXCEPTION: u32 = 1 << 30;
+
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum GuestActivityState {
     Active = 0,
     WaitForSipi = u8::MAX,
 }
-bitfield::bitfield! {
-    #[repr(C)]
-    pub struct NestedPageFaultInfo1(u64); // 使用 u64 存储联合体
 
-    impl Debug; // 允许打印
-    pub valid, set_valid: 0;                  // [0]
-    pub write, set_write: 1;                  // [1]
-    pub user, set_user: 2;                    // [2]
-    pub reserved, set_reserved: 3;            // [3]
-    pub execute, set_execute: 4;              // [4]
-    pub reserved2, set_reserved2: 5, 31;      // [5:31]
-    pub guest_physical_address, set_guest_physical_address: 32; // [32]
-    pub guest_page_tables, set_guest_page_tables: 33;            // [33]
-}
+

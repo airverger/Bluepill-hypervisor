@@ -1,24 +1,26 @@
 mod guest;
 pub mod vmexit;
+pub use guest::VCpu;
 
 use alloc::boxed::Box;
 use core::arch::asm;
-pub use guest::Vmx;
+
 pub use vmexit::InstructionInfo;
 pub use vmexit::VmExitReason;
 
-use crate::amd::guest::apic_id;
+
 use crate::amd::vmexit::handle_cpuid;
 use crate::arch::Architecture;
 use kernelutils::nt::{platform_ops, switch_stack};
 use kernelutils::Registers;
+use crate::amd::guest::support::apic_id;
 
 pub(crate) fn main(registers: &Registers) -> ! {
     unsafe { x86::irq::disable() };
 
     let id = apic_id::processor_id_from(apic_id::get()).unwrap();
     Architecture::enable();
-    let mut guest = Vmx::new(id);
+    let mut guest = VCpu::new(id);
 
     guest.activate();
 
