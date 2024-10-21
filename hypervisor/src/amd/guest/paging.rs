@@ -138,6 +138,8 @@ impl NestedPageTables {
         let pde = &mut self.data.pd[pdpt_index].0.entries[pd_index];
         Self::split_2mb(pde, &mut self.data.pt_apic);
     }
+
+   #[allow(dead_code)]
     pub fn pa(&self) -> u64 {
         physical_address(addr_of!(self.data) as _).as_u64()
     }
